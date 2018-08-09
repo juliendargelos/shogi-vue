@@ -4,6 +4,8 @@ export default  class Board {
   constructor() {
     this.player1 = null
     this.player2 = null
+    this.cells = []
+    this.pieces = []
   }
 
   get width() {
@@ -14,13 +16,6 @@ export default  class Board {
     return 9
   }
 
-  get pieces() {
-    return this.cells.reduce((pieces, cell) => {
-      if(cell.piece) pieces.push(cell.piece)
-      return pieces
-    }, [])
-  }
-
   get kingGeneral() {
     return this.player1.kingGeneral ? this.player1 : this.player2
   }
@@ -29,15 +24,31 @@ export default  class Board {
     return this.player1.jeweledGeneral ? this.player1 : this.player2
   }
 
-  get player1State() {
-    return this.state(this.player1)
+  get players() {
+    return [this.player1, this.player2]
   }
 
-  get player2State() {
-    return this.state(this.player2)
+  get usedPieces() {
+    return this.cells.reduce((pieces, cell) => {
+      if(cell.piece) pieces.push(cell.piece)
+      return pieces
+    }, [])
   }
 
-  state(player, kingCell) {
+  piecesCapturedBy(player) {
+    var usedPieces = this.usedPieces
+    var length = this.pieces.length - usedPieces.length
+    var capturedPieces = []
+
+    this.pieces.find(piece => {
+      if(capturedPieces.length >= length) return true
+      if(!usedPieces.includes(piece) && piece.owner === player) capturedPieces.push(piece)
+    })
+
+    return capturedPieces
+  }
+
+  stateOf(player, kingCell) {
     if(!kingCell) kingCell = this.cells.find(cell => cell.piece && cell.owner === player && cell.piece.king)
     var king = kingCell.piece
     var kingMovements = this.movements(king, kingCell)
@@ -189,18 +200,20 @@ export default  class Board {
         !c.piece &&
         (
           !piece.pawn ||
-          !c.piece.pawn ||
-          c.piece.promoted
+          (
+            !this.col(c.x).find(sc => sc.piece && sc.piece.pawn && sc.piece.owner === piece.owner && !sc.piece.promoted) &&
+            !((sc => sc && sc.piece && sc.piece.king && sc.piece.owner !== piece.owner)(this.cell(c.x, c.y + (piece.owner.jeweledGeneral ? 1 : -1))))
+          )
         ) &&
         (
           !piece.knight ||
-          (c.y >= 2 && piece.owner.kingGeneral) ||
-          (c.y <= this.height - 3 && piece.owner.jeweledgeneral)
+          (c.y >= 2 || piece.owner.jeweledgeneral) ||
+          (c.y <= this.height - 3 || piece.owner.kingGeneral)
         ) &&
         (
           (!piece.lance && !piece.pawn) ||
-          (c.y !== 0 && piece.owner.kingGeneral) ||
-          (c.y !== this.height - 1 && piece.owner.jeweledgeneral)
+          (c.y !== 0 || piece.owner.jeweledgeneral) ||
+          (c.y !== this.height - 1 || piece.owner.kingGeneral)
         )
       ))
     }
@@ -251,6 +264,8 @@ export default  class Board {
       null, k.ro, null, null, null, null, null, k.bi, null,
       k.la, k.kn, k.si, k.go, k.ki, k.go, k.si, k.kn, k.la
     ])
+
+    this.pieces = this.usedPieces
 
     return this
   }
