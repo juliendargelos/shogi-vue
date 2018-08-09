@@ -86,12 +86,11 @@ export default  class Board {
     }
 
     if(!piece) return []
-
     if(!cell) cell = this.cells.find(cell => cell.piece === piece)
 
-    if(cell) {
-      var cells = []
+    var cells = []
 
+    if(cell) {
       piece.movements.forEach(([dX, dY]) => {
         if(piece.owner.kingGeneral) dY *= -1
 
@@ -167,56 +166,22 @@ export default  class Board {
         cells.push(...movementCells.filter(c => {
           return c && (!c.piece || c.piece.owner !== piece.owner)
         }))
-
-        // var row = this.row(cell.y).filter(c => !c.piece || c.piece.owner !== cell.piece.owner).map(c => c.x)
-        // var col = this.col(cell.x).filter(c => !c.piece || c.piece.owner !== cell.piece.owner).map(c => c.y)
-
-        // var x = {
-        //   min: Math.min(Math.max(0, cell.x + dX), ...row),
-        //   max: Math.max(Math.min(this.width - 1, cell.x + dX), ...row)
-        // }
-
-        // var y = {
-        //   min: Math.min(Math.max(0, cell.y + dY), ...col),
-        //   max: Math.max(Math.min(this.height - 1, cell.y + dY), ...col)
-        // }
-
-        // console.log(x, y)
-
-        // cells.push.apply(cells, this.cells.filter(c => (
-        //   (!c.piece || (c.piece.owner !== piece.owner)) &&
-        //   (!piece.king || this.state(piece.owner, c) === this.constructor.states.normal) &&
-        //   c.x >= x.min &&
-        //   c.x <= x.max &&
-        //   c.y >= y.min &&
-        //   c.y <= y.max
-        // )))
       })
-
-      return cells
     }
     else {
-      return this.cells.filter(c => (
-        !c.piece &&
-        (
-          !piece.pawn ||
-          (
-            !this.col(c.x).find(sc => sc.piece && sc.piece.pawn && sc.piece.owner === piece.owner && !sc.piece.promoted) &&
-            !((sc => sc && sc.piece && sc.piece.king && sc.piece.owner !== piece.owner)(this.cell(c.x, c.y + (piece.owner.jeweledGeneral ? 1 : -1))))
-          )
-        ) &&
-        (
-          !piece.knight ||
-          (c.y >= 2 || piece.owner.jeweledgeneral) ||
-          (c.y <= this.height - 3 || piece.owner.kingGeneral)
-        ) &&
-        (
-          (!piece.lance && !piece.pawn) ||
-          (c.y !== 0 || piece.owner.jeweledgeneral) ||
-          (c.y !== this.height - 1 || piece.owner.kingGeneral)
-        )
-      ))
+      cells = this.cells.filter(c => !c.piece)
+
+      if(piece.pawn) {
+        cells = cells
+          .filter(c => !this.col(c.x).find(sc => sc.piece && sc.piece.pawn && sc.piece.owner === piece.owner && !sc.piece.promoted))
+          .filter(c => !(sc => sc && sc.piece && sc.piece.king && sc.piece.owner !== piece.owner)(this.cell(c.x, c.y + (piece.owner.jeweledGeneral ? 1 : -1))))
+      }
+
+      if(piece.pawn || piece.lance) cells = piece.owner.jeweledGeneral ? cells.filter(c => c.y < this.height - 1) : cells.filter(c => c.y > 0)
+      else if(piece.knight) cells = piece.owner.jeweledGeneral ? cells.filter(c => c.y < this.height - 2) : cells.filter(c => c.y > 1)
     }
+
+    return cells
   }
 
   promotable(piece, destination) {

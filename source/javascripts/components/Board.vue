@@ -1,43 +1,35 @@
 <template>
-  <div
-    class="board"
-    :style="{
-      '--width': board.width,
-      '--height': board.height
-    }"
-  >
-    <template v-for="cell in board.cells">
-      <cell
-        class="board__cell"
-        :class="{
-          'board__cell--movement': movementCell(cell),
-          'board__cell--destination': destinationCell === cell,
-        }"
-        :cell="cell"
-        :style="{
-          '--x': cell.x,
-          '--y': cell.y
-        }"
-        @mouseover.native="showDestination(cell, $event)"
-        @mouseout.native="hideDestination(cell)"
-      />
-      <piece
-        v-if="cell.piece"
-        class="board__piece"
-        :class="{
-          'board__piece--dragging': movingPiece === cell.piece,
-          'board__piece--movable': cell.piece.owner === player
-        }"
-        :piece="cell.piece"
-        :style="{
-          '--x': cell.x,
-          '--y': cell.y
-        }"
-        @mousedown.native="moving(cell.piece, $event)"
-        @mouseover.native="showMovements(cell.piece)"
-        @mouseout.native="hideMovements()"
-      />
-    </template>
+  <div class="board">
+    <table class="board__cells">
+      <tbody>
+        <tr v-for="y in board.height">
+          <template v-for="x in board.width">
+            <td
+              v-for="cell in [board.cell(x - 1, y - 1)]"
+              class="board__cell"
+              :class="{
+                'board__cell--movement': movementCell(cell),
+                'board__cell--destination': destinationCell === cell,
+              }"
+              :ref="`c${cell.x},${cell.y}`"
+            >
+              <piece
+                v-if="cell.piece"
+                class="board__piece"
+                :class="{
+                  'board__piece--dragging': movingPiece === cell.piece,
+                  'board__piece--movable': cell.piece.owner === player
+                }"
+                :piece="cell.piece"
+                @mousedown.native.prevent.stop="moving(cell.piece, $event)"
+                @mouseover.native="showMovements(cell.piece)"
+                @mouseout.native="hideMovements()"
+              />
+            </td>
+          </template>
+        </tr>
+      </tbody>
+    </table>
 
     <template v-for="p in board.players">
       <div :class="`board__captured-pieces board__captured-pieces--${p.typeName}`">
@@ -91,10 +83,28 @@
         movingPieceHeight: 0,
         movingPieceElement: null,
         movingPieceTransition: false,
-        destinationCellElement: null,
-        movingPiecePositionCallback: event => this.updateMovingPiecePosition(event),
+        movingPiecePositionCallback: event => {
+          this.updateMovingPiecePosition(event)
+          var destinationCell = this.movementCells.find(cell => {
+            var bounds = this.$refs[`c${cell.x},${cell.y}`][0].getBoundingClientRect()
+
+            if(event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom) {
+              this.showDestination(cell)
+
+              return true
+            }
+          })
+
+          if(!destinationCell) this.hideDestination()
+        },
         movingPieceMoveCallback: event => this.destinationCell ? this.move() : this.stopMoving(),
         stoppedMoving: false
+      }
+    },
+
+    computed: {
+      destinationCellElement() {
+        return this.destinationCell ? this.$refs[`c${this.destinationCell.x},${this.destinationCell.y}`][0] : null
       }
     },
 
@@ -111,18 +121,14 @@
         return this.movementCells.includes(cell)
       },
 
-      showDestination(cell, event) {
+      showDestination(cell) {
         if(this.movingPiece && this.movementCell(cell)) {
           this.destinationCell = cell
-          this.destinationCellElement = event.target
         }
       },
 
-      hideDestination(cell) {
-        if(this.destinationCell === cell) {
-          this.destinationCell = null
-          this.destinationCellElement = null
-        }
+      hideDestination() {
+        this.destinationCell = null
       },
 
       move() {
@@ -160,7 +166,6 @@
         this.movingPieceHeigt = bounds.height
         this.movingPieceTransition = true
         this.destinationCell = null
-        this.destinationCellElement = null
         this.movementCells = []
 
         setTimeout(() => {
@@ -187,42 +192,66 @@
 
 <style lang="sass">
   .board
-    $padding: 150px
-    border: 1px solid black
     box-sizing: border-box
     position: relative
+    display: flex
+    flex-direction: column
 
-    &__cell, &__piece
-      width: calc(100% / var(--width))
-      height: calc((100% - #{$padding}) / var(--height))
-      top: calc(#{$padding/2} + (var(--y) * ((100% - #{$padding}) / var(--height))))
-      left: calc(var(--x) * (100% / var(--width)))
-      position: absolute
+    &__cells
+      width: 100%
+      height: 82%
+      border-spacing: 4px
+      flex-grow: 0
+      flex-shrink: 0
+      position: relative
 
     &__cell
-      &--movement
-        background-color: rgba(black, .2)
+      background-color: rgba(black, .05)
+      box-sizing: border-box
+      border-radius: 4px
+      position: relative
 
-      &--destination
-        background-color: rgba(red, .2)
+      &::before
+        content: ''
+        width: 100%
+        height: 100%
+        top: 0
+        left: 0
+        border: 3px solid black
+          radius: 4px
+        box-sizing: border-box
+        opacity: 0
+        display: block
+        position: absolute
+
+      &--movement::before
+        opacity: .2
+        transition: .15s
+
+      &--destination::before
+        opacity: .4
+        border:
+          width: 6px
 
     &__piece
-      z-index: -1
+      width: 100%
+      height: 100%
+      z-index: 2
+      pointer-events: none
+      position: relative
 
-      &--movable
-        z-index: 10
+      &--movable, &--captured
+        pointer-events: auto
 
       &--captured
         height: 100%
         flex-grow: 0
         flex-shrink: 1
-        position: relative
 
       &--moving
         top: 0
         left: 0
         position: fixed
-        pointer-events: none
 
       &--dragging
         opacity: 0
@@ -232,20 +261,18 @@
 
     &__captured-pieces
       width: 100%
-      height: #{$padding/2}
+      height: 9%
       padding: 5px
-      border: 1px solid black
       box-sizing: border-box
-      position: absolute
-      left: 0
+      flex-grow: 0
+      flex-shrink: 0
       display: flex
       align-items: center
       justify-content: center
 
-      &--jeweled-general
-        top: 0
+      &:first-of-type
+        order: -1
 
-      &--king-general
-        top: 100%
-        transform: translateY(-100%)
+      &:last-of-type
+        order: 1
 </style>

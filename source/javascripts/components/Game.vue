@@ -30,7 +30,6 @@
 
 <style lang="sass">
   .game
-    $board-padding: 100px
     width: 100%
     height: 100%
     display: flex
@@ -38,14 +37,14 @@
     justify-content: center
 
     &__board
-      width: calc(100vw - #{30px + $board-padding})
+      width: calc(70vw - 30px)
       height: calc(100vh - 30px)
       flex:
         grow: 0
         shrink: 0
 
       @media screen and (orientation: landscape)
-        width: calc(100vh - #{30px + $board-padding})
+        width: calc(70vh - 30px)
 
       @media screen and (orientation: portrait)
         height: calc(100vw - 30px)
