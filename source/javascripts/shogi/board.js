@@ -235,14 +235,14 @@ export default  class Board {
       !piece.promoted &&
       this.cells.find(cell => cell.piece === piece) &&
       (
-        (piece.owner.kingGeneral && destination.y > this.height - 3) ||
-        (piece.owner.jeweledgeneral && destination.y < 2)
+        (piece.owner.jeweledGeneral && destination.y > this.height - 4) ||
+        (piece.owner.kingGeneral && destination.y < 3)
       )
     )
   }
 
   move(piece, destination, promote = false) {
-    if(promote && !this.promotable(piece)) return false
+    if(promote && !this.promotable(piece, destination)) return false
     if(this.movements(piece).includes(destination)) {
       if(destination.piece) {
         destination.piece.owner = piece.owner

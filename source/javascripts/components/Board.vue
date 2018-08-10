@@ -4,28 +4,32 @@
       <tbody>
         <tr v-for="y in board.height">
           <template v-for="x in board.width">
-            <td
-              v-for="cell in [board.cell(x - 1, y - 1)]"
-              class="board__cell"
-              :class="{
-                'board__cell--movement': movementCell(cell),
-                'board__cell--destination': destinationCell === cell,
-              }"
-              :ref="`c${cell.x},${cell.y}`"
-            >
-              <piece
-                v-if="cell.piece"
-                class="board__piece"
+            <template v-for="cell in [board.cell(x - 1, y - 1)]">
+              <td
+                v-for="state in [cell.piece && cell.piece.king ? board.stateOf(cell.piece.owner) : null]"
+                class="board__cell"
                 :class="{
-                  'board__piece--dragging': movingPiece === cell.piece,
-                  'board__piece--movable': cell.piece.owner === player
+                  'board__cell--movement': movementCell(cell),
+                  'board__cell--destination': destinationCell === cell,
+                  'board__cell--check': state === board.constructor.states.check,
+                  'board__cell--checkmate': state === board.constructor.states.checkmate
                 }"
-                :piece="cell.piece"
-                @mousedown.native.prevent.stop="moving(cell.piece, $event)"
-                @mouseover.native="showMovements(cell.piece)"
-                @mouseout.native="hideMovements()"
-              />
-            </td>
+                :ref="`c${cell.x},${cell.y}`"
+              >
+                <piece
+                  v-if="cell.piece"
+                  class="board__piece"
+                  :class="{
+                    'board__piece--dragging': movingPiece === cell.piece,
+                    'board__piece--movable': cell.piece.owner === player
+                  }"
+                  :piece="cell.piece"
+                  @mousedown.native.prevent.stop="moving(cell.piece, $event)"
+                  @mouseover.native="showMovements(cell.piece)"
+                  @mouseout.native="hideMovements()"
+                />
+              </td>
+            </template>
           </template>
         </tr>
       </tbody>
@@ -66,6 +70,20 @@
         transform: `translate(${movingPiecePosition.x}px, ${movingPiecePosition.y}px)${movingPiece.owner.jeweledGeneral ? ' rotate(180deg)' : ''}`
       }"
     />
+
+    <div
+      class="board__promote"
+      :class="{
+        'board__promote--visible': promoting
+      }"
+      :style="{
+        top: `${movingPiecePosition.y}px`,
+        left: `${movingPiecePosition.x}px`
+      }"
+    >
+      <span class="board__promote-button" @click="move(true)">Promote</span>
+      <span class="board__promote-button" @click="move(false)">Don't Promote</span>
+    </div>
   </div>
 </template>
 
@@ -103,7 +121,8 @@
           if(!destinationCell) this.hideDestination()
         },
         movingPieceMoveCallback: event => this.destinationCell ? this.move() : this.stopMoving(),
-        stoppedMoving: false
+        stoppedMoving: false,
+        promoting: false
       }
     },
 
@@ -136,11 +155,19 @@
         this.destinationCell = null
       },
 
-      move() {
+      move(promote = null) {
         if(!this.movingPiece || !this.movementCell(this.destinationCell)) return
-        this.board.move(this.movingPiece, this.destinationCell)
-        this.stopMoving()
-        this.$emit('move')
+        if(promote === null && this.board.promotable(this.movingPiece, this.destinationCell)) {
+          window.removeEventListener('mousemove', this.movingPiecePositionCallback)
+          window.removeEventListener('mouseup', this.movingPieceMoveCallback)
+          this.promoting = true
+        }
+        else {
+          this.promoting = false
+          this.board.move(this.movingPiece, this.destinationCell, promote)
+          this.stopMoving()
+          this.$emit('move')
+        }
       },
 
       moving(piece, event) {
@@ -250,6 +277,16 @@
         border:
           width: 6px
 
+      &--check, &--checkmate
+        &::before
+          opacity: .6
+
+      &--check::before
+        border-color: orange
+
+      &--checkmate::before
+        border-color: red
+
     &__piece
       width: 100%
       height: 100%
@@ -289,7 +326,7 @@
         opacity: 0
 
       &--transition
-        transition: .2s
+        transition: transform .2s
 
     &__player
       width: 100%
@@ -320,4 +357,34 @@
       flex-shrink: 1
       align-items: center
       justify-content: flex-end
+
+    &__promote
+      background: #eee
+      z-index: 10
+      position: fixed
+      transform: translate(-25%, calc(50% + 20px))
+      border-radius: 6px
+      box-shadow: 0 15px 30px rgba(black, .1)
+      opacity: 0
+      transition: .2s
+      pointer-events: none
+
+      &--visible
+        opacity: 1
+        transform: translate(-25%, calc(50% + 0))
+        pointer-events: auto
+
+    &__promote-button
+      padding: 15px 25px
+      cursor: pointer
+      display: block
+      font-size: 12px
+      text-align: center
+      transition: .15s
+
+      &:not(:last-of-type)
+        border-bottom: 1px solid rgba(black, .1)
+
+      &:hover
+        background-color: rgba(black, .05)
 </style>
