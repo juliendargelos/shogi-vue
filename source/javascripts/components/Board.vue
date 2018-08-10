@@ -32,19 +32,24 @@
     </table>
 
     <template v-for="p in board.players">
-      <div :class="`board__captured-pieces board__captured-pieces--${p.typeName}`">
-        <piece
-          v-for="piece in board.piecesCapturedBy(p)"
-          class="board__piece board__piece--captured"
-          :class="{
-            'board__piece--dragging': movingPiece === piece,
-            'board__piece--movable': piece.owner === player
-          }"
-          :piece="piece"
-          @mousedown.native="moving(piece, $event)"
-          @mouseover.native="showMovements(piece)"
-          @mouseout.native="hideMovements()"
-        />
+      <div :class="`board__player board__player--${p.typeName}`">
+        <div class="board__state">
+          {{stateName(board.stateOf(p))}}
+        </div>
+        <div class="board__captured-pieces">
+          <piece
+            v-for="piece in board.piecesCapturedBy(p)"
+            class="board__piece board__piece--captured"
+            :class="{
+              'board__piece--dragging': movingPiece === piece,
+              'board__piece--movable': piece.owner === player
+            }"
+            :piece="piece"
+            @mousedown.native="moving(piece, $event)"
+            @mouseover.native="showMovements(piece)"
+            @mouseout.native="hideMovements()"
+          />
+        </div>
       </div>
     </template>
 
@@ -180,6 +185,17 @@
           x: this.movingPiecePositionOffset.x + event.clientX,
           y: this.movingPiecePositionOffset.y + event.clientY
         }
+      },
+
+      stateName(state) {
+        switch(state) {
+          case Shogi.Board.states.check:
+            return 'Check'
+          case Shogi.Board.states.checkmate:
+            return 'Checkmate'
+          default:
+            return ''
+        }
       }
     },
 
@@ -208,7 +224,7 @@
     &__cell
       background-color: rgba(black, .05)
       box-sizing: border-box
-      border-radius: 4px
+      border-radius: 6px
       position: relative
 
       &::before
@@ -223,10 +239,11 @@
         opacity: 0
         display: block
         position: absolute
+        transition: .2s
 
       &--movement::before
         opacity: .2
-        transition: .15s
+        transition: border-width .1s
 
       &--destination::before
         opacity: .4
@@ -240,10 +257,20 @@
       pointer-events: none
       position: relative
 
+      &:not(&--moving)
+        padding: 3px
+        margin: -3px
+
       &--movable, &--captured
         pointer-events: auto
+        cursor: -webkit-grab
+        cursor: -moz-grab
+        cursor: -ms-grab
+        cursor: -o-grab
+        cursor: grab
 
       &--captured
+        width: 11%
         height: 100%
         flex-grow: 0
         flex-shrink: 1
@@ -252,6 +279,11 @@
         top: 0
         left: 0
         position: fixed
+        cursor: -webkit-grabbing
+        cursor: -moz-grabbing
+        cursor: -ms-grabbing
+        cursor: -o-grabbing
+        cursor: grabbing
 
       &--dragging
         opacity: 0
@@ -259,20 +291,33 @@
       &--transition
         transition: .2s
 
-    &__captured-pieces
+    &__player
       width: 100%
       height: 9%
-      padding: 5px
-      box-sizing: border-box
+      display: flex
       flex-grow: 0
       flex-shrink: 0
-      display: flex
       align-items: center
-      justify-content: center
 
       &:first-of-type
         order: -1
 
       &:last-of-type
         order: 1
+
+    &__state
+      width: 150px
+      flex-grow: 0
+      flex-shrink: 0
+
+    &__captured-pieces
+      width: 100%
+      height: 100%
+      padding: 5px
+      box-sizing: border-box
+      display: flex
+      flex-grow: 1
+      flex-shrink: 1
+      align-items: center
+      justify-content: flex-end
 </style>
