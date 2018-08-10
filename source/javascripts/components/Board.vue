@@ -12,7 +12,11 @@
                   'board__cell--movement': movementCell(cell),
                   'board__cell--destination': destinationCell === cell,
                   'board__cell--check': state === board.constructor.states.check,
-                  'board__cell--checkmate': state === board.constructor.states.checkmate
+                  'board__cell--checkmate': state === board.constructor.states.checkmate,
+                  'board__cell--promote-marker--top-left': y === 3 && x === 3,
+                  'board__cell--promote-marker--top-right': y === 3 && x === 7,
+                  'board__cell--promote-marker--bottom-left': y === 7 && x === 3,
+                  'board__cell--promote-marker--bottom-right': y === 7 && x === 7,
                 }"
                 :ref="`c${cell.x},${cell.y}`"
               >
@@ -286,6 +290,33 @@
 
       &--checkmate::before
         border-color: red
+
+      &--promote-marker
+        &--top-left, &--top-right, &--bottom-left, &--bottom-right
+          &::after
+            content: ''
+            background-color: rgba(black, .5)
+            width: 4px
+            height: 4px
+            border-radius: 4px
+            position: absolute
+            display: block
+
+        &--top-left, &--top-right
+          &::after
+            top: 100%
+
+        &--bottom-left, &--bottom-right
+          &::after
+            bottom: 100%
+
+        &--top-left, &--bottom-left
+          &::after
+            left: 100%
+
+        &--top-right, &--bottom-right
+          &::after
+            right: 100%
 
     &__piece
       width: 100%
