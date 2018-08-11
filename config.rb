@@ -50,5 +50,5 @@ configure :build do
   ignore '/javascripts/components/*.vue'
   ignore '/lambda/*.js'
   activate :minify_css
-  activate :minify_javascript
+  # activate :minify_javascript
 end

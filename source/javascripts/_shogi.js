@@ -25,15 +25,11 @@ Object.assign(Piece, {
 
 Piece.all = Object.values(Piece)
 Piece.all.forEach(piece => {
-  var name = piece.name[0].toLowerCase() + piece.name.substring(1)
-
-  if(!Object.getOwnPropertyDescriptor(Piece.prototype, name)) {
-    Object.defineProperty(Piece.prototype, name, {
-      get() {
-        return this.constructor === piece
-      }
-    })
-  }
+  Object.defineProperty(Piece.prototype, piece.name[0].toLowerCase() + piece.name.substring(1), {
+    get() {
+      return this.constructor === piece
+    }
+  })
 })
 
 export default {
