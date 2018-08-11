@@ -5,7 +5,6 @@
       class="game__board"
       :board="game.board"
       :player="game.currentPlayer"
-      @move="game.turn"
       @move="game.turn()"
     />
   </div>
