@@ -27,7 +27,7 @@ Piece.all = Object.values(Piece)
 Piece.all.forEach(piece => {
   var name = piece.name[0].toLowerCase() + piece.name.substring(1)
 
-  if(!Piece.prototype.getOwnPropertyDescriptor(name)) {
+  if(!Object.getOwnPropertyDescriptor(Piece.prototype, name)) {
     Object.defineProperty(Piece.prototype, name, {
       get() {
         return this.constructor === piece
