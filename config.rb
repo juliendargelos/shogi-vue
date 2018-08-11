@@ -49,5 +49,5 @@ page '/*.txt', layout: false
 configure :build do
   ignore '/javascripts/components/*.vue'
   activate :minify_css
-  activate :minify_js
+  activate :minify_javascript
 end
