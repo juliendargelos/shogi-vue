@@ -7,7 +7,16 @@ export default class Cell {
     this.piece = piece
   }
 
+  get clone() {
+    return new this.constructor(this.x, this.y, this.piece)
+  }
+
   at(x, y) {
+    if(x instanceof this.constructor) {
+      y = x.y
+      x = x.x
+    }
+
     return this.x === x && this.y === y
   }
 

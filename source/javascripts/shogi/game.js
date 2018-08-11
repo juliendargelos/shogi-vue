@@ -13,6 +13,14 @@ export default class Game {
     return this.player1.first ? this.player1 : this.player2
   }
 
+  get players() {
+    return [this.player1, this.player2]
+  }
+
+  turn() {
+    this.currentPlayer = this.currentPlayer === this.player1 ? this.player2 : this.player1
+  }
+
   reversePlayers() {
     this.player1.type = this.player2.reverse().oppositeType
   }

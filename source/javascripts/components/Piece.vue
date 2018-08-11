@@ -22,12 +22,12 @@
 <style lang="sass">
   .piece
     background:
-      size: 75% 75%
+      size: 70% 70%
       position: center center
       repeat: no-repeat
 
     &--big
-      background-size: 90% 90%
+      background-size: 85% 85%
 
     @each $type in king, gold-general, silver-general, knight, lance, bishop, rook, pawn
       &--#{$type}

@@ -6,6 +6,7 @@
       :board="game.board"
       :player="game.currentPlayer"
       @move="game.turn"
+      @move="game.turn()"
     />
   </div>
 </template>
@@ -37,14 +38,14 @@
     justify-content: center
 
     &__board
-      width: calc(100vw - 30px)
+      width: calc(70vw - 30px)
       height: calc(100vh - 30px)
       flex:
         grow: 0
         shrink: 0
 
       @media screen and (orientation: landscape)
-        width: calc(100vh - 30px)
+        width: calc(70vh - 30px)
 
       @media screen and (orientation: portrait)
         height: calc(100vw - 30px)
