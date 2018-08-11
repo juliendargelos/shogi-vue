@@ -92,9 +92,8 @@
 </template>
 
 <script>
-  import Shogi from '../shogi'
+  import Shogi from '../_shogi'
   import Piece from './Piece.vue'
-  import Cell from './Cell.vue'
 
   export default {
     props: ['board', 'player'],
@@ -231,8 +230,7 @@
     },
 
     components: {
-      piece: Piece,
-      cell: Cell
+      piece: Piece
     }
   }
 </script>

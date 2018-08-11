@@ -1,4 +1,4 @@
-import Piece from '../piece'
+import Piece from '../_piece'
 
 export default class Lance extends Piece {
   static get movements() {

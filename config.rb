@@ -7,7 +7,7 @@ end
 
 activate :external_pipeline,
   name: :webpack,
-  command: build? ? './node_modules/webpack/bin/webpack.js --bail' : './node_modules/webpack/bin/webpack.js --watch -d',
+  command: "npm run #{build? ? :build : :serve}",
   source: '.tmp/dist',
   latency: 1
 
@@ -48,4 +48,7 @@ page '/*.txt', layout: false
 
 configure :build do
   ignore '/javascripts/components/*.vue'
+  ignore '/lambda/*.js'
+  activate :minify_css
+  activate :minify_javascript
 end
