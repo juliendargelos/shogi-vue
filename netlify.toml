@@ -1,0 +1,4 @@
+[build]
+  command = "middleman build"
+  publish = "build"
+  functions = "lambda"

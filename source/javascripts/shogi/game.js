@@ -17,6 +17,10 @@ export default class Game {
     this.player1.type = this.player2.reverse().oppositeType
   }
 
+  turn() {
+    this.currentPlayer = this.currentPlayer == this.player1 ? this.player2 : this.player1
+  }
+
   start() {
     this.reversePlayers()
     this.board.init(this.player1, this.player2)

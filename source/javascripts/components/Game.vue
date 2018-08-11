@@ -4,6 +4,8 @@
       v-if="game"
       class="game__board"
       :board="game.board"
+      :player="game.currentPlayer"
+      @move="game.turn"
     />
   </div>
 </template>
@@ -14,11 +16,6 @@
 
   export default {
     data() {
-      window.game = new Shogi.Game(
-        new Shogi.Player('Player 1'),
-        new Shogi.Player('Player 2')
-      ).start()
-
       return {
         game: new Shogi.Game(
           new Shogi.Player('Player 1'),

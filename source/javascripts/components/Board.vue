@@ -13,26 +13,29 @@
       <cell
         class="board__cell"
         :class="{
-          'board__cell--highlighted': highlighted(cell)
+          'board__cell--highlighted': movementCell(cell)
         }"
         :cell="cell"
         :style="{
           '--x': cell.x,
           '--y': cell.y
         }"
-        @click.stop.native="move(cell)"
+        :droppable="movingPiece && movementCell(cell)"
+        @drop.native="move(cell)"
       />
       <piece
         v-if="cell.piece"
         class="board__piece"
+        :draggable="cell.piece.owner === player"
         :piece="cell.piece"
         :style="{
           '--x': cell.x,
           '--y': cell.y
         }"
-        @click.stop.native="moving(cell.piece)"
-        @mouseover.native="highlight(board.movements(cell))"
-        @mouseout.native="unhighlight"
+        @dragstart.native="moving(cell.piece)"
+        @dragend.native="cancelMoving"
+        @mouseover.native="showMovements(cell.piece)"
+        @mouseout.native="hideMovements"
       />
     </template>
   </div>
@@ -44,12 +47,12 @@
   import Cell from './Cell.vue'
 
   export default {
-    props: ['board'],
+    props: ['board', 'player'],
 
     data() {
       return {
         movingPiece: null,
-        highlightedCells: []
+        movementCells: []
       }
     },
 
@@ -60,28 +63,36 @@
     },
 
     methods: {
-      highlight(cells) {
-        if(!this.movingPiece) this.highlightedCells = cells
+      showMovements(piece) {
+        if(!this.movingPiece && piece.owner === this.player) {
+          this.movementCells = this.board.movements(piece)
+        }
       },
 
-      unhighlight() {
-        if(!this.movingPiece) this.highlightedCells = []
+      hideMovements() {
+        if(!this.movingPiece) this.movementCells = []
       },
 
-      highlighted(cell) {
-        return this.highlightedCells.includes(cell)
+      movementCell(cell) {
+        return this.movementCells.includes(cell)
       },
 
       move(cell) {
         if(!this.movingPiece) return
         this.board.move(this.movingPiece, cell)
-        this.movingPiece = null;
-        this.unhighlight()
+        this.cancelMovement()
+        this.$emit('move')
       },
 
       moving(piece) {
         if(this.movingPiece) return
+        this.showMovements(piece)
         this.movingPiece = piece
+      },
+
+      cancelMoving() {
+        this.movingPiece = null
+        this.hideMovements()
       }
     },
 
