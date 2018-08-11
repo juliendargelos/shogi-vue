@@ -6,4 +6,4 @@
 yarn.lock
 build/
 node_modules/
-lambda/
+/lambda/
