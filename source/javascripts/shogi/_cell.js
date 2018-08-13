@@ -47,22 +47,23 @@ export default class Cell {
       }
     }
 
-    Object.keys(deltas).forEach(dimension => {
-      var delta = deltas[dimension]
-      iterator[dimension] = this[`${Math.abs(delta) === Infinity ? 'infinite' : 'finite'}Iterator`](iterator, cell[dimension], delta, infinite)
-    })
+    Object.keys(deltas).forEach(dimension => { iterator[dimension] = this.dimensionIterator(iterator, cell[dimension], deltas[dimension], infinite) })
 
     return iterator
   }
 
-  static finiteIterator(iterator, position, delta, infinite) {
+  static dimensionIterator(iterator, position, delta, infinite) {
+    return this[`${Math.abs(delta) === Infinity ? 'infinite' : 'finite'}Iterator`](iterator, position, delta, infinite)
+  }
+
+  static finiteDimensionIterator(iterator, position, delta, infinite) {
     return {
       get value() { return position + delta },
       get valid() { return infinite || iterator.offset === 1 }
     }
   }
 
-  static infiniteIterator(iterator, position, delta) {
+  static infiniteDimensionIterator(iterator, position, delta) {
     var sign = delta < 0 ? -1 : 1
 
     return {
