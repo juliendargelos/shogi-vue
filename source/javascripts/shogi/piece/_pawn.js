@@ -1,10 +1,9 @@
-import Piece from '../piece'
+import Piece from '../_piece'
 
-export default class Knight extends Piece {
+export default class Pawn extends Piece {
   static get movements() {
     return [
-      [-1, 2],
-      [ 1, 2]
+      [0, 1]
     ]
   }
 

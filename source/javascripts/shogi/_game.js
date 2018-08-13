@@ -1,4 +1,4 @@
-import Board from './board'
+import Board from './_board'
 
 export default class Game {
   constructor(player1, player2) {
@@ -23,6 +23,10 @@ export default class Game {
 
   reversePlayers() {
     this.player1.type = this.player2.reverse().oppositeType
+  }
+
+  turn() {
+    this.currentPlayer = this.currentPlayer == this.player1 ? this.player2 : this.player1
   }
 
   start() {

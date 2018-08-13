@@ -1,4 +1,4 @@
-import Cell from './cell'
+import Cell from './_cell'
 
 export default  class Board {
   constructor() {

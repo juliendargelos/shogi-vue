@@ -11,7 +11,7 @@
 </template>
 
 <script>
-  import Shogi from '../shogi'
+  import Shogi from '../_shogi'
   import Board from './Board.vue'
 
   export default {
