@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Game from './components/Game.vue'
 
-Vue.config.productionTip = true
+Vue.config.productionTip = false
 
 new Vue({
   el: 'main',
