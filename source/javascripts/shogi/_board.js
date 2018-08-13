@@ -161,8 +161,10 @@ export default  class Board {
         .filter(cell => !(c => c && c.piece && c.piece.king && c.piece.owner !== piece.owner)(this.cell(cell.x, cell.y + (piece.owner.jeweledGeneral ? 1 : -1))))
     }
 
-    if(piece.pawn || piece.lance) movements = piece.owner.jeweledGeneral ? movements.filter(cell => cell.y < this.height - 1) : movements.filter(cell => cell.y > 0)
-    else if(piece.knight) movements = piece.owner.jeweledGeneral ? movements.filter(cell => cell.y < this.height - 2) : movements.filter(cell => cell.y > 1)
+    if(piece.pawn || piece.lance || piece.knight) {
+      var offset = piece.knight ? 2 : 1
+      movements = movements.filter(piece.owner.jeweledGeneral ? cell => cell.y < this.height - offset : cell => cell.y > offset - 1)
+    }
 
     return movements
   }
