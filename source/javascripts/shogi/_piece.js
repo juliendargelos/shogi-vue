@@ -24,12 +24,15 @@ export default class Piece {
   check(attributes) {
     var value
 
-    for(var attribute in attributes) {
-      value = attributes[attributes]
-      if(typeof value === 'object' && value !== null && value.hasOwnProperty('not') ? this[attribute] === value.not : this[attribute] !== value) return false
+    for(var key in attributes) {
+      if(!this.checkAttribute(key, attributes[key])) return false
     }
 
     return true
+  }
+
+  checkAttribute(key, value) {
+    return typeof value === 'object' && value !== null && value.hasOwnProperty('not') ? this[attribute] === value.not : this[attribute] !== value
   }
 
   static get big() {
