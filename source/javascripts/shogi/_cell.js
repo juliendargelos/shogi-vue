@@ -28,7 +28,7 @@ export default class Cell {
 
   static iterator(board, cell, x, y) {
     var deltas = {x, y}
-    var infinity = Object.values(deltas).find(delta => Math.abs(delta) === Infinity)
+    var infinite = Object.values(deltas).find(delta => Math.abs(delta) === Infinity)
     var maximums = {x: board.width, y: board.height}
     var iterator = {
       offset: 0,
@@ -49,23 +49,25 @@ export default class Cell {
 
     Object.keys(deltas).forEach(dimension => {
       var delta = deltas[dimension]
-      var position = cell[dimension]
-
-      if(Math.abs(delta) !== Infinity) {
-        iterator[dimension] = {
-          get value() { return position + delta },
-          get valid() { return infinity || iterator.offset === 1 }
-        }
-      }
-      else {
-        var sign = delta < 0 ? -1 : 1
-        iterator[dimension] = {
-          get value() { return position + sign*iterator.offset },
-          get valid() { return true }
-        }
-      }
+      iterator[dimension] = this[`${Math.abs(delta) === Infinity ? 'infinite' : 'finite'}Iterator`](iterator, cell[dimension], delta, infinite)
     })
 
     return iterator
+  }
+
+  static finiteIterator(iterator, position, delta, infinite) {
+    return {
+      get value() { return position + delta },
+      get valid() { return infinite || iterator.offset === 1 }
+    }
+  }
+
+  static infiniteIterator(iterator, position, delta) {
+    var sign = delta < 0 ? -1 : 1
+
+    return {
+      get value() { return position + sign*iterator.offset },
+      get valid() { return true }
+    }
   }
 }

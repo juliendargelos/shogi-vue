@@ -56,29 +56,26 @@ export default  class Board {
       var kingMovements = board.movements(kingCell, null, false)
 
       board.cells.find(cell => {
-        if(cell.piece && cell.piece.owner !== player) {
-          var movements = board.movements(cell, null, false)
+        if(!cell.piece || cell.piece.owner === player) return false
+        var movements = board.movements(cell, null, false)
+        if(!movements.includes(kingCell)) return false
+        if(checkmate) {
+          state = this.constructor.states.checkmate
+          kingMovements.find(movement => {
+            movement.piece = kingCell.piece
+            kingCell.piece = null
 
-          if(movements.includes(kingCell)) {
-            if(checkmate) {
-              state = this.constructor.states.checkmate
-              kingMovements.find(movement => {
-                movement.piece = kingCell.piece
-                kingCell.piece = null
-
-                if(board.stateOf(player, false) === this.constructor.states.normal) {
-                  state = this.constructor.states.check
-                  return true
-                }
-
-                reset()
-              })
+            if(board.stateOf(player, false) === this.constructor.states.normal) {
+              state = this.constructor.states.check
+              return true
             }
-            else state = this.constructor.states.check
 
-            return true
-          }
+            reset()
+          })
         }
+        else state = this.constructor.states.check
+
+        return true
       })
     })
 
@@ -182,21 +179,18 @@ export default  class Board {
   }
 
   move(piece, destination, promote = false) {
-    if(promote && !this.promotable(piece, destination)) return false
-    if(this.movements(piece).includes(destination)) {
-      if(destination.piece) {
-        destination.piece.owner = piece.owner
-        if(destination.piece.promoted) destination.piece.promoted = false
-      }
-
-      var cell = this.cells.find(cell => cell.piece === piece)
-      destination.piece = piece
-      if(promote) piece.promoted = true
-      if(cell) cell.piece = null
-
-      return true
+    if((promote && !this.promotable(piece, destination)) || !this.movements(piece).includes(destination)) return false
+    if(destination.piece) {
+      destination.piece.owner = piece.owner
+      if(destination.piece.promoted) destination.piece.promoted = false
     }
-    else return false
+
+    var cell = this.cells.find(cell => cell.piece === piece)
+    destination.piece = piece
+    if(promote) piece.promoted = true
+    if(cell) cell.piece = null
+
+    return true
   }
 
   init(player1, player2) {
