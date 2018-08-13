@@ -1,4 +1,5 @@
 import Cell from './_cell'
+import Iterator from './_iterator'
 
 export default  class Board {
   constructor() {
@@ -139,7 +140,7 @@ export default  class Board {
     var movements = []
 
     piece.movements.forEach(([x, y]) => {
-      Cell.iterator(this, cell, x, y).forEach(movement => {
+      new Iterator(this, cell, x, y).forEach(movement => {
         if(movement.piece && movement.piece.owner === piece.owner) return false
         if(!movement.piece || movement.piece.owner !== piece.owner) movements.push(movement)
         if(movement.piece && movement.piece.owner !== piece.owner) return false
