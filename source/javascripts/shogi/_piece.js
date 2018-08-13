@@ -21,6 +21,17 @@ export default class Piece {
     return this.constructor.promotable
   }
 
+  check(attributes) {
+    var value
+
+    for(var attribute in attributes) {
+      value = attributes[attributes]
+      if(typeof value === 'object' && value !== null && value.hasOwnProperty('not') ? this[attribute] === value.not : this[attribute] !== value) return false
+    }
+
+    return true
+  }
+
   static get big() {
     return false
   }

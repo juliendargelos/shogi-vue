@@ -155,8 +155,8 @@ export default  class Board {
 
     if(piece.pawn) {
       movements = movements
-        .filter(cell => !this.col(cell.x).find(c => c.piece && c.piece.pawn && c.piece.owner === piece.owner && !c.piece.promoted))
-        .filter(cell => !(c => c && c.piece && c.piece.king && c.piece.owner !== piece.owner)(this.cell(cell.x, cell.y + (piece.owner.jeweledGeneral ? 1 : -1))))
+        .filter(cell => !this.col(cell.x).find(c => c.piece && c.piece.check({pawn: true, owner: piece.owner, promoted: false})))
+        .filter(cell => !(c => c && c.piece && c.piece.check({king: true, owner: {not: piece.owner}}))(this.cell(cell.x, cell.y + (piece.owner.jeweledGeneral ? 1 : -1))))
     }
 
     if(piece.pawn || piece.lance || piece.knight) {
