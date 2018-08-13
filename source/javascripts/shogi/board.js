@@ -116,104 +116,13 @@ export default  class Board {
     if(!piece) return []
     if(!cell) cell = this.cells.find(cell => cell.piece === piece)
 
-    var cells = []
-
-    if(cell) {
-      piece.movements.forEach(([dX, dY]) => {
-        if(piece.owner.kingGeneral) dY *= -1
-
-        var movementCells = []
-        var movementCell, offset;
-
-        if(dX === Infinity && dY === Infinity) {
-          for(offset = 1; cell.x + offset < this.width && cell.y + offset < this.height; offset++) {
-            movementCell = this.cell(cell.x + offset, cell.y + offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dX === -Infinity && dY === -Infinity) {
-          for(offset = 1; cell.x - offset >= 0 && cell.y - offset >= 0; offset++) {
-            movementCell = this.cell(cell.x - offset, cell.y - offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dX === Infinity && dY === -Infinity) {
-          for(offset = 1; cell.x + offset < this.width && cell.y - offset >= 0; offset++) {
-            movementCell = this.cell(cell.x + offset, cell.y - offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dX === -Infinity && dY === Infinity) {
-          for(offset = 1; cell.x - offset >= 0 && cell.y + offset < this.height; offset++) {
-            movementCell = this.cell(cell.x - offset, cell.y + offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dX === Infinity) {
-          for(offset = 1; cell.x + offset < this.width; offset++) {
-            movementCell = this.cell(cell.x + offset, cell.y)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dX === -Infinity) {
-          for(offset = 1; cell.x - offset >= 0; offset++) {
-            movementCell = this.cell(cell.x - offset, cell.y)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dY === Infinity) {
-          for(offset = 1; cell.y + offset < this.height; offset++) {
-            movementCell = this.cell(cell.x, cell.y + offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else if(dY === -Infinity) {
-          for(offset = 1; cell.y - offset >= 0; offset++) {
-            movementCell = this.cell(cell.x, cell.y - offset)
-            if(movementCell.piece && movementCell.piece.owner === piece.owner) break
-            movementCells.push(movementCell)
-            if(movementCell.piece && movementCell.piece.owner !== piece.owner) break
-          }
-        }
-        else movementCells.push(this.cell(cell.x + dX, cell.y + dY))
-
-        cells.push(...movementCells.filter(c => {
-          return c && (!c.piece || c.piece.owner !== piece.owner)
-        }))
-      })
-    }
-    else {
-      cells = this.cells.filter(c => !c.piece)
-
-      if(piece.pawn) {
-        cells = cells
-          .filter(c => !this.col(c.x).find(sc => sc.piece && sc.piece.pawn && sc.piece.owner === piece.owner && !sc.piece.promoted))
-          .filter(c => !(sc => sc && sc.piece && sc.piece.king && sc.piece.owner !== piece.owner)(this.cell(c.x, c.y + (piece.owner.jeweledGeneral ? 1 : -1))))
-      }
-
-      if(piece.pawn || piece.lance) cells = piece.owner.jeweledGeneral ? cells.filter(c => c.y < this.height - 1) : cells.filter(c => c.y > 0)
-      else if(piece.knight) cells = piece.owner.jeweledGeneral ? cells.filter(c => c.y < this.height - 2) : cells.filter(c => c.y > 1)
-    }
+    var movements = this[`movementsFor${cell ? 'Used' : 'Captured'}`](piece, cell)
 
     if(checkmate) {
       this.clone((board, reset) => {
         var clonedCell = cell ? board.cell(cell.x, cell.y) : null
 
-        cells = cells.filter(c => {
+        movements = movements.filter(c => {
           board.cell(c.x, c.y).piece = piece
           if(clonedCell) clonedCell.piece = null
 
@@ -226,7 +135,36 @@ export default  class Board {
       })
     }
 
-    return cells
+    return movements
+  }
+
+  movementsForUsed(piece, cell) {
+    var movements = []
+
+    piece.movements.forEach(([x, y]) => {
+      Cell.iterator(this, cell, x, y).forEach(movement => {
+        if(movement.piece && movement.piece.owner === piece.owner) return false
+        if(!movement.piece || movement.piece.owner !== piece.owner) movements.push(movement)
+        if(movement.piece && movement.piece.owner !== piece.owner) return false
+      })
+    })
+
+    return movements
+  }
+
+  movementsForCaptured(piece) {
+    var movements = this.cells.filter(cell => !cell.piece)
+
+    if(piece.pawn) {
+      movements = movements
+        .filter(cell => !this.col(cell.x).find(c => c.piece && c.piece.pawn && c.piece.owner === piece.owner && !c.piece.promoted))
+        .filter(cell => !(c => c && c.piece && c.piece.king && c.piece.owner !== piece.owner)(this.cell(cell.x, cell.y + (piece.owner.jeweledGeneral ? 1 : -1))))
+    }
+
+    if(piece.pawn || piece.lance) movements = piece.owner.jeweledGeneral ? movements.filter(cell => cell.y < this.height - 1) : movements.filter(cell => cell.y > 0)
+    else if(piece.knight) movements = piece.owner.jeweledGeneral ? movements.filter(cell => cell.y < this.height - 2) : movements.filter(cell => cell.y > 1)
+
+    return movements
   }
 
   promotable(piece, destination) {

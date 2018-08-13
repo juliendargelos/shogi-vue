@@ -5,7 +5,8 @@ export default class Piece {
   }
 
   get movements() {
-    return this.constructor[this.promoted ? 'promotedMovements' : 'movements']
+    var movements = this.constructor[this.promoted ? 'promotedMovements' : 'movements']
+    return this.owner.kingGeneral ? movements.map(([x, y]) => [x, -y]) : movements
   }
 
   get big() {
